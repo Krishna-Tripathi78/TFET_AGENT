@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id="plot" style="width:100%;height:600px;"></div>
+    <script>
+        const trace = {
+            x: [10, 15, 20, 25, 30],
+            y: [180e6, 200e6, 220e6, 240e6, 260e6],
+            z: [2.3e6, 2.5e6, 2.7e6, 2.9e6, 3e6],
+            mode: 'markers',
+            marker: {
+                size: 15,
+                color: [2.3e6, 2.5e6, 2.7e6, 2.9e6, 3e6],
+                colorscale: 'Viridis',
+                showscale: true,
+                colorbar: {
+                    title: {text: '<b>Ion/Ioff Ratio</b>', font: {size: 18, family: 'Arial Black, sans-serif'}},
+                    tickfont: {size: 14, family: 'Arial, sans-serif'},
+                    len: 0.7,
+                    thickness: 20
+                },
+                opacity: 0.9
+            },
+            type: 'scatter3d'
+        };
+
+        const layout = {
+            title: {text: '<b>NSGA-III 3D Pareto Front</b>', font: {size: 32, family: 'Arial Black, sans-serif'}},
+            scene: {
+                xaxis: {title: {text: '<b>Natural Length (nm)</b>', font: {size: 20, family: 'Arial Black, sans-serif'}}, tickfont: {size: 14, family: 'Arial, sans-serif'}},
+                yaxis: {title: {text: '<b>Vertical E-field (V/m)</b>', font: {size: 20, family: 'Arial Black, sans-serif'}}, tickfont: {size: 14, family: 'Arial, sans-serif'}},
+                zaxis: {title: {text: '<b>Ion/Ioff Ratio</b>', font: {size: 20, family: 'Arial Black, sans-serif'}}, tickfont: {size: 14, family: 'Arial, sans-serif'}}
+            },
+            margin: {l: 0, r: 150, b: 0, t: 80},
+            paper_bgcolor: 'white'
+        };
+
+        Plotly.newPlot('plot', [trace], layout);
+    </script>
+</body>
+</html>

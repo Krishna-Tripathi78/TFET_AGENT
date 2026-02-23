@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV Upload Test</title>
+</head>
+<body>
+    <h1>CSV Upload Test</h1>
+    
+    <div>
+        <label>
+            <input type="radio" name="dataSource" value="synthetic" checked> Synthetic
+        </label>
+        <label>
+            <input type="radio" name="dataSource" value="csv"> CSV
+        </label>
+    </div>
+    
+    <div id="csv-upload-section" style="display: none;">
+        <input type="file" id="csv-file" accept=".csv">
+        <div id="csv-status"></div>
+    </div>
+    
+    <button id="test-btn">Test Upload</button>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Test page loaded');
+            
+            // Radio button handlers
+            const radios = document.querySelectorAll('input[name="dataSource"]');
+            const csvSection = document.getElementById('csv-upload-section');
+            const csvFile = document.getElementById('csv-file');
+            const statusDiv = document.getElementById('csv-status');
+            
+            console.log('Found elements:', {
+                radios: radios.length,
+                csvSection: !!csvSection,
+                csvFile: !!csvFile,
+                statusDiv: !!statusDiv
+            });
+            
+            radios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    console.log('Radio changed to:', this.value);
+                    if (this.value === 'csv') {
+                        csvSection.style.display = 'block';
+                    } else {
+                        csvSection.style.display = 'none';
+                    }
+                });
+            });
+            
+            // File upload handler
+            csvFile.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                console.log('File selected:', file ? file.name : 'None');
+                
+                if (!file) return;
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                statusDiv.innerHTML = 'Uploading...';
+                
+                fetch('/api/upload-csv', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.status === 'success') {
+                        statusDiv.innerHTML = '✓ ' + data.message;
+                        statusDiv.style.color = 'green';
+                    } else {
+                        statusDiv.innerHTML = '✗ ' + (data.error || 'Failed');
+                        statusDiv.style.color = 'red';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusDiv.innerHTML = '✗ Error: ' + error.message;
+                    statusDiv.style.color = 'red';
+                });
+            });
+            
+            // Test button
+            document.getElementById('test-btn').addEventListener('click', function() {
+                console.log('Test button clicked');
+                fetch('/api/csv-status')
+                    .then(response => response.json())
+                    .then(data => console.log('CSV status:', data))
+                    .catch(error => console.error('Status error:', error));
+            });
+        });
+    </script>
+</body>
+</html>

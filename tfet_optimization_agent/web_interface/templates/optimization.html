@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TFET Optimization - TFET Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">TFET Optimization Agent</h1>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/optimization" class="nav-link active">Optimization</a></li>
+                <li><a href="/results" class="nav-link">Results</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="optimization-container">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="width: 70px; height: 70px; margin: 0 auto 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-cogs" style="font-size: 2rem; color: white;"></i>
+                </div>
+                <h1>TFET Multi-Objective Optimization</h1>
+                <p style="color: #666;">Configure parameters and run NSGA-III optimization</p>
+            </div>
+
+            <!-- Data Source Selection -->
+            <div class="data-selection-panel">
+                <h3><i class="fas fa-database"></i> Data Source Selection</h3>
+                <div class="data-options">
+                    <label class="radio-option">
+                        <input type="radio" name="dataSource" value="synthetic" checked>
+                        <span><i class="fas fa-robot"></i> Synthetic Data (ML Framework)</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="dataSource" value="csv">
+                        <span><i class="fas fa-file-csv"></i> Upload CSV Data</span>
+                    </label>
+                </div>
+                
+                <div class="csv-section" id="csvSection" style="display: none;">
+                    <h4>Upload CSV File</h4>
+                    <div class="file-upload-area" onclick="document.getElementById('csvFile').click()">
+                        <div class="upload-placeholder">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
+                            <p><strong>Click to upload CSV file</strong></p>
+                            <small style="color: #666;">Required: gate_voltage, drain_voltage, channel_length, oxide_thickness</small>
+                        </div>
+                    </div>
+                    <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                    <div id="fileInfo" class="file-info" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Skewness Analysis -->
+            <div class="skewness-panel">
+                <h3><i class="fas fa-chart-bar"></i> Dataset Skewness Analysis</h3>
+                <p style="color: #666; margin-bottom: 1rem;">Analyze statistical distribution of available datasets</p>
+                <div class="skewness-controls">
+                    <label for="datasetSelect">Select Dataset:</label>
+                    <select id="datasetSelect">
+                        <option value="aluminum">Aluminum TFET</option>
+                        <option value="copper">Copper TFET</option>
+                        <option value="sample">Sample TFET</option>
+                    </select>
+                    <button id="analyzeSkewness" class="btn btn-secondary btn-small"><i class="fas fa-search"></i> Analyze</button>
+                </div>
+                <div id="skewnessPlot" class="plot"></div>
+                <div id="skewnessStats" class="stats-panel" style="display: none;">
+                    <h4>Statistical Metrics</h4>
+                    <div id="statsGrid" class="stats-grid"></div>
+                </div>
+            </div>
+
+            <!-- Optimization Parameters -->
+            <div class="form-section">
+                <h3><i class="fas fa-sliders-h"></i> Optimization Parameters</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="popSize"><i class="fas fa-users"></i> Population Size</label>
+                        <input type="range" id="popSize" min="50" max="200" value="100" oninput="updateRangeValue('popSize')">
+                        <span id="popSizeValue" class="range-value">100</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="generations"><i class="fas fa-sync-alt"></i> Generations</label>
+                        <input type="range" id="generations" min="50" max="300" value="150" oninput="updateRangeValue('generations')">
+                        <span id="generationsValue" class="range-value">150</span>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(102, 126, 234, 0.05); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                    <p style="font-size: 0.9rem; color: #666;">
+                        <i class="fas fa-info-circle"></i> <strong>Note:</strong> Higher population size and generations improve solution quality but increase computation time.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <button id="runOptimization" class="btn btn-primary"><i class="fas fa-play-circle"></i> Run NSGA-III Optimization</button>
+                <button id="clearResults" class="btn btn-secondary"><i class="fas fa-trash-alt"></i> Clear Results</button>
+            </div>
+
+            <!-- Status Panel -->
+            <div id="statusPanel" class="status-panel" style="display: none;">
+                <h3><i class="fas fa-spinner fa-spin"></i> Optimization Status</h3>
+                <div id="statusMessage" style="margin: 1rem 0; font-weight: 500;">Ready to start optimization...</div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div id="optimizationResults" style="display: none;">
+                    <h4 style="margin-top: 1.5rem;"><i class="fas fa-check-circle"></i> Results Summary</h4>
+                    <div id="resultsSummary"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/optimization.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            checkCSVStatus();
+            loadAvailableDatasets();
+        });
+
+        function updateRangeValue(id) {
+            const slider = document.getElementById(id);
+            const valueSpan = document.getElementById(id + 'Value');
+            valueSpan.textContent = slider.value;
+        }
+
+        document.querySelectorAll('input[name="dataSource"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const csvSection = document.getElementById('csvSection');
+                csvSection.style.display = this.value === 'csv' ? 'block' : 'none';
+            });
+        });
+
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) uploadCSV(file);
+        });
+
+        function uploadCSV(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/api/upload-csv', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const fileInfo = document.getElementById('fileInfo');
+                if (data.status === 'success') {
+                    fileInfo.innerHTML = `<i class="fas fa-check-circle"></i> <strong>File uploaded successfully</strong><br>Filename: ${data.filename}<br>Rows: ${data.rows}`;
+                    fileInfo.className = 'file-info success';
+                } else {
+                    fileInfo.innerHTML = `<i class="fas fa-exclamation-circle"></i> <strong>Error:</strong> ${data.error}`;
+                    fileInfo.className = 'file-info error';
+                }
+                fileInfo.style.display = 'block';
+            });
+        }
+
+        function checkCSVStatus() {
+            fetch('/api/csv-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.has_csv) {
+                    const fileInfo = document.getElementById('fileInfo');
+                    fileInfo.innerHTML = `<i class="fas fa-check-circle"></i> <strong>CSV file available</strong><br>Filename: ${data.filename}<br>Rows: ${data.rows}`;
+                    fileInfo.className = 'file-info success';
+                    fileInfo.style.display = 'block';
+                }
+            });
+        }
+
+        function loadAvailableDatasets() {
+            fetch('/api/available-datasets')
+            .then(response => response.json())
+            .then(data => {
+                const select = document.getElementById('datasetSelect');
+                select.innerHTML = '';
+                data.datasets.forEach(dataset => {
+                    const option = document.createElement('option');
+                    option.value = dataset;
+                    option.textContent = dataset.charAt(0).toUpperCase() + dataset.slice(1) + ' TFET';
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        document.getElementById('analyzeSkewness').addEventListener('click', function() {
+            const dataset = document.getElementById('datasetSelect').value;
+            analyzeSkewness(dataset);
+        });
+
+        function analyzeSkewness(dataset) {
+            fetch(`/api/skewness-analysis?dataset=${dataset}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('skewnessPlot').innerHTML = `<img src="data:image/png;base64,${data.plot}" style="width: 100%; height: auto; border-radius: 10px;">`;
+                    
+                    const statsPanel = document.getElementById('skewnessStats');
+                    const statsGrid = document.getElementById('statsGrid');
+                    
+                    let statsHTML = '';
+                    for (const [param, stats] of Object.entries(data.statistics)) {
+                        statsHTML += `
+                            <div class="stat-item">
+                                <h5>${param}</h5>
+                                <p>Skewness: ${stats.skewness.toFixed(3)}</p>
+                                <p>Kurtosis: ${stats.kurtosis.toFixed(3)}</p>
+                            </div>
+                        `;
+                    }
+                    
+                    statsGrid.innerHTML = statsHTML;
+                    statsPanel.style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            });
+        }
+
+        document.getElementById('runOptimization').addEventListener('click', function() {
+            const dataSource = document.querySelector('input[name="dataSource"]:checked').value;
+            runOptimization(dataSource);
+        });
+
+        function runOptimization(source) {
+            const statusPanel = document.getElementById('statusPanel');
+            const statusMessage = document.getElementById('statusMessage');
+            const progressFill = document.getElementById('progressFill');
+            const runButton = document.getElementById('runOptimization');
+
+            statusPanel.style.display = 'block';
+            statusMessage.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting optimization...';
+            runButton.disabled = true;
+            
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 200);
+
+            fetch(`/api/optimize?source=${source}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+                
+                if (data.status === 'success') {
+                    statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                    displayResults(data.results);
+                } else {
+                    statusMessage.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error: ' + data.message;
+                }
+                
+                runButton.disabled = false;
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                statusMessage.innerHTML = '<i class="fas fa-times-circle"></i> Optimization failed: ' + error.message;
+                runButton.disabled = false;
+            });
+        }
+
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('optimizationResults');
+            const summaryDiv = document.getElementById('resultsSummary');
+            
+            if (results) {
+                summaryDiv.innerHTML = `
+                    <div class="results-summary">
+                        <div class="summary-card">
+                            <h4>Algorithm</h4>
+                            <p class="metric">${results.algorithm || 'NSGA-III'}</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Solutions Found</h4>
+                            <p class="metric">${results.pareto_front_size || 0}</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>Framework</h4>
+                            <p class="metric">${results.framework || 'Advanced'}</p>
+                        </div>
+                        <div class="summary-card">
+                            <h4>ML Features</h4>
+                            <p class="metric">${results.ml_features ? 'Enabled' : 'Disabled'}</p>
+                        </div>
+                    </div>
+                    <p style="text-align: center; margin-top: 1.5rem;"><a href="/results" class="btn btn-primary"><i class="fas fa-chart-line"></i> View Detailed Results</a></p>
+                `;
+                resultsDiv.style.display = 'block';
+            }
+        }
+
+        document.getElementById('clearResults').addEventListener('click', function() {
+            document.getElementById('statusPanel').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+        });
+    </script>
+</body>
+</html>

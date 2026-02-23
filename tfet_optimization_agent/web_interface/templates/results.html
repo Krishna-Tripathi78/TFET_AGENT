@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimization Results - TFET Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">TFET Optimization Agent</h1>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/optimization" class="nav-link">Optimization</a></li>
+                <li><a href="/results" class="nav-link active">Results</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="results-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <div style="width: 60px; height: 60px; margin-bottom: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-chart-pie" style="font-size: 1.8rem; color: white;"></i>
+                    </div>
+                    <h1>Optimization Results</h1>
+                    <p style="color: #666;">NSGA-III multi-objective optimization analysis</p>
+                </div>
+                <button id="downloadAllGraphs" class="btn btn-primary"><i class="fas fa-download"></i> Download Report</button>
+            </div>
+
+            <div id="noResults" style="display: none;">
+                <div class="hero-section">
+                    <div style="width: 80px; height: 80px; margin: 0 auto 1rem; background: rgba(102, 126, 234, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-inbox" style="font-size: 2.5rem; color: #667eea;"></i>
+                    </div>
+                    <h2>No Results Available</h2>
+                    <p>Run an optimization to see detailed results and visualizations here.</p>
+                    <a href="/optimization" class="btn btn-primary" style="margin-top: 1rem;"><i class="fas fa-play"></i> Run Optimization</a>
+                </div>
+            </div>
+
+            <div id="resultsContent" style="display: none;">
+                <!-- Results Summary -->
+                <div id="resultsSummary" class="results-summary"></div>
+
+                <!-- Main Visualizations -->
+                <div style="background: rgba(102, 126, 234, 0.05); padding: 1.5rem; border-radius: 15px; margin: 2rem 0;">
+                    <h2 style="margin-bottom: 1rem;"><i class="fas fa-cube"></i> Primary Results</h2>
+                    <div class="visualization-panel">
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">3D Pareto Front</h4>
+                            <div id="paretoPlot" class="plot"></div>
+                        </div>
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">Convergence Analysis</h4>
+                            <div id="convergencePlot" class="plot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trade-off Analysis -->
+                <div style="background: rgba(118, 75, 162, 0.05); padding: 1.5rem; border-radius: 15px; margin: 2rem 0;">
+                    <h2 style="margin-bottom: 1rem;"><i class="fas fa-balance-scale"></i> Trade-off Analysis</h2>
+                    <div class="visualization-panel">
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">Objective Trade-offs</h4>
+                            <div id="tradeoffPlot" class="plot"></div>
+                        </div>
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">Pareto Comparison</h4>
+                            <div id="paretoComparisonPlot" class="plot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parameter Distribution -->
+                <div style="background: rgba(240, 147, 251, 0.05); padding: 1.5rem; border-radius: 15px; margin: 2rem 0;">
+                    <h2 style="margin-bottom: 1rem;"><i class="fas fa-project-diagram"></i> Parameter Distribution</h2>
+                    <div class="visualization-panel">
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">Optimal Parameters</h4>
+                            <div id="parameterPlot" class="plot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Analytics -->
+                <div style="background: rgba(32, 201, 151, 0.05); padding: 1.5rem; border-radius: 15px; margin: 2rem 0;">
+                    <h2 style="margin-bottom: 1rem;"><i class="fas fa-microscope"></i> Advanced Analytics</h2>
+                    <div class="visualization-panel">
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">Average Distance</h4>
+                            <div id="avgDistancePlot" class="plot"></div>
+                        </div>
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">Selection Pressure</h4>
+                            <div id="selectionPlot" class="plot"></div>
+                        </div>
+                    </div>
+
+                    <div class="visualization-panel">
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">Average Spread</h4>
+                            <div id="avgSpreadPlot" class="plot"></div>
+                        </div>
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">Score Distribution</h4>
+                            <div id="scoreHistPlot" class="plot"></div>
+                        </div>
+                    </div>
+
+                    <div class="visualization-panel">
+                        <div class="plot-container">
+                            <h4 style="margin-bottom: 1rem;">Individual Distribution</h4>
+                            <div id="individualDistPlot" class="plot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Best Solutions Table -->
+                <div class="form-section">
+                    <h3><i class="fas fa-trophy"></i> Top 10 Solutions</h3>
+                    <div style="overflow-x: auto;">
+                        <table id="solutionsTable" class="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Gate Voltage (V)</th>
+                                    <th>Drain Voltage (V)</th>
+                                    <th>Channel Length (nm)</th>
+                                    <th>Oxide Thickness (nm)</th>
+                                    <th>Natural Length (nm)</th>
+                                    <th>Vertical E-field (V/m)</th>
+                                    <th>Ion/Ioff Ratio</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Algorithm Information -->
+                <div id="algorithmInfo" class="form-section"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/results.js') }}?v=2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadResults();
+        });
+
+        function loadResults() {
+            fetch('/api/results')
+            .then(response => response.json())
+            .then(data => {
+                if (data.message && data.message.includes('No results')) {
+                    document.getElementById('noResults').style.display = 'block';
+                    document.getElementById('resultsContent').style.display = 'none';
+                } else {
+                    document.getElementById('noResults').style.display = 'none';
+                    document.getElementById('resultsContent').style.display = 'block';
+                    displayResults(data);
+                }
+            })
+            .catch(error => {
+                console.error('Error loading results:', error);
+                document.getElementById('noResults').style.display = 'block';
+            });
+        }
+
+        function displayResults(results) {
+            displaySummary(results);
+            displayParetoFront(results);
+            displayConvergence(results);
+            displayTradeoffs(results);
+            displayParetoComparison(results);
+            displayParameterDistribution(results);
+            displaySolutionsTable(results);
+            displayAlgorithmInfo(results);
+        }
+
+        function displaySummary(results) {
+            const summaryDiv = document.getElementById('resultsSummary');
+            const stats = results.statistics || {};
+            
+            summaryDiv.innerHTML = `
+                <div class="summary-card">
+                    <h3><i class="fas fa-cog"></i> Algorithm</h3>
+                    <div class="metric">${results.algorithm || 'NSGA-III'}</div>
+                </div>
+                <div class="summary-card">
+                    <h3><i class="fas fa-check-circle"></i> Solutions</h3>
+                    <div class="metric">${results.pareto_front_size || 0}</div>
+                </div>
+                <div class="summary-card">
+                    <h3><i class="fas fa-ruler"></i> Min Length</h3>
+                    <div class="metric">${stats.min_natural_length ? stats.min_natural_length.toFixed(2) + ' nm' : 'N/A'}</div>
+                </div>
+                <div class="summary-card">
+                    <h3><i class="fas fa-bolt"></i> Avg E-field</h3>
+                    <div class="metric">${stats.avg_efield ? stats.avg_efield.toExponential(2) : 'N/A'}</div>
+                </div>
+                <div class="summary-card">
+                    <h3><i class="fas fa-arrow-up"></i> Max Ratio</h3>
+                    <div class="metric">${stats.max_ion_ioff ? stats.max_ion_ioff.toExponential(2) : 'N/A'}</div>
+                </div>
+                <div class="summary-card">
+                    <h3><i class="fas fa-palette"></i> Diversity</h3>
+                    <div class="metric">${stats.diversity_metric ? stats.diversity_metric.toFixed(3) : 'N/A'}</div>
+                </div>
+            `;
+        }
+
+        function displayParetoFront(results) {
+            if (!results.objectives || results.objectives.length === 0) return;
+
+            const objectives = results.objectives;
+            const trace = {
+                x: objectives.map(obj => obj[0]),
+                y: objectives.map(obj => obj[1]),
+                z: objectives.map(obj => -obj[2]),
+                mode: 'markers',
+                marker: {
+                    size: 16,
+                    color: objectives.map(obj => -obj[2]),
+                    colorscale: 'Jet',
+                    showscale: true,
+                    colorbar: {title: {text: '<b>Ion/Ioff</b>', font: {size: 20}}, tickfont: {size: 16}, len: 0.7, thickness: 20},
+                    opacity: 0.95,
+                    line: {color: '#000', width: 1.5}
+                },
+                type: 'scatter3d',
+                name: 'Pareto Solutions'
+            };
+
+            const traces = [trace];
+            if (results.knee_solution && results.knee_solution.objectives) {
+                const knee = results.knee_solution.objectives;
+                traces.push({
+                    x: [knee[0]], y: [knee[1]], z: [-knee[2]],
+                    mode: 'markers',
+                    marker: {size: 20, color: '#FF0000', symbol: 'diamond', line: {color: '#000', width: 3}},
+                    type: 'scatter3d',
+                    name: 'Knee Point'
+                });
+            }
+
+            const layout = {
+                title: {text: '<b>3D Pareto Front</b>', font: {size: 28}},
+                scene: {
+                    xaxis: {title: {text: '<b>Natural Length (nm)</b>', font: {size: 18}}, tickfont: {size: 14}},
+                    yaxis: {title: {text: '<b>E-field (V/m)</b>', font: {size: 18}}, tickfont: {size: 14}},
+                    zaxis: {title: {text: '<b>Ion/Ioff</b>', font: {size: 18}}, tickfont: {size: 14}}
+                },
+                margin: {l: 0, r: 150, b: 0, t: 60},
+                paper_bgcolor: 'rgba(255,255,255,0.9)'
+            };
+
+            Plotly.newPlot('paretoPlot', traces, layout, {responsive: true});
+        }
+
+        function displayConvergence(results) {
+            if (!results.convergence_data) return;
+
+            const trace = {
+                x: results.convergence_data.generations,
+                y: results.convergence_data.hypervolume,
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: {color: '#667eea', width: 4},
+                marker: {size: 10, color: '#764ba2', line: {color: '#000', width: 2}}
+            };
+
+            const layout = {
+                title: {text: '<b>Convergence</b>', font: {size: 28}},
+                xaxis: {title: {text: '<b>Generation</b>', font: {size: 18}}, tickfont: {size: 14}, showgrid: true},
+                yaxis: {title: {text: '<b>Hypervolume</b>', font: {size: 18}}, tickfont: {size: 14}, showgrid: true},
+                margin: {l: 80, r: 40, b: 60, t: 60},
+                paper_bgcolor: 'rgba(255,255,255,0.9)',
+                plot_bgcolor: 'white'
+            };
+
+            Plotly.newPlot('convergencePlot', [trace], layout, {responsive: true});
+        }
+
+        function displayTradeoffs(results) {
+            if (!results.objectives || results.objectives.length === 0) return;
+
+            const trace = {
+                x: results.objectives.map(obj => obj[0]),
+                y: results.objectives.map(obj => obj[1]),
+                mode: 'markers',
+                marker: {color: '#DC143C', size: 14, line: {color: '#000', width: 2}}
+            };
+
+            const layout = {
+                title: {text: '<b>Trade-offs</b>', font: {size: 28}},
+                xaxis: {title: {text: '<b>Natural Length (nm)</b>', font: {size: 18}}, tickfont: {size: 14}},
+                yaxis: {title: {text: '<b>E-field (V/m)</b>', font: {size: 18}}, tickfont: {size: 14}},
+                margin: {l: 80, r: 40, b: 60, t: 60},
+                paper_bgcolor: 'rgba(255,255,255,0.9)',
+                plot_bgcolor: 'white'
+            };
+
+            Plotly.newPlot('tradeoffPlot', [trace], layout, {responsive: true});
+        }
+
+        function displayParetoComparison(results) {
+            if (!results.objectives || results.objectives.length === 0) return;
+
+            const material = results.csv_file_used ? results.csv_file_used.toLowerCase() : 'unknown';
+            let materialName = 'Unknown', markerColor = '#0047AB';
+            
+            if (material.includes('aluminum')) {
+                materialName = 'Aluminum';
+                markerColor = '#0047AB';
+            } else if (material.includes('copper')) {
+                materialName = 'Copper';
+                markerColor = '#DC143C';
+            }
+            
+            const trace = {
+                x: results.objectives.map(obj => obj[0]),
+                y: results.objectives.map(obj => obj[1]),
+                mode: 'markers',
+                name: materialName,
+                marker: {size: 14, color: markerColor, line: {width: 2, color: '#000'}}
+            };
+
+            const layout = {
+                title: {text: '<b>Pareto Comparison</b>', font: {size: 28}},
+                xaxis: {title: {text: '<b>Natural Length (nm)</b>', font: {size: 18}}, tickfont: {size: 14}},
+                yaxis: {title: {text: '<b>E-field (V/m)</b>', font: {size: 18}}, tickfont: {size: 14}},
+                margin: {l: 80, r: 40, b: 60, t: 60},
+                showlegend: true,
+                legend: {x: 0.7, y: 0.95, font: {size: 16}, bgcolor: 'rgba(255,255,255,0.9)', bordercolor: '#000', borderwidth: 2},
+                paper_bgcolor: 'rgba(255,255,255,0.9)',
+                plot_bgcolor: 'white'
+            };
+
+            Plotly.newPlot('paretoComparisonPlot', [trace], layout, {responsive: true});
+        }
+
+        function displayParameterDistribution(results) {
+            if (!results.best_parameters || results.best_parameters.length === 0) return;
+
+            const parameters = results.best_parameters;
+            let gateVoltages, drainVoltages, channelLengths;
+
+            if (typeof parameters[0] === 'object' && !Array.isArray(parameters[0])) {
+                gateVoltages = parameters.map(p => p.gate_voltage);
+                drainVoltages = parameters.map(p => p.drain_voltage);
+                channelLengths = parameters.map(p => p.channel_length * 1e9);
+            } else {
+                gateVoltages = parameters.map(p => p[0]);
+                drainVoltages = parameters.map(p => p[1]);
+                channelLengths = parameters.map(p => p[2] * 1e9);
+            }
+
+            const trace = {
+                x: gateVoltages,
+                y: channelLengths,
+                mode: 'markers',
+                marker: {
+                    color: drainVoltages,
+                    colorscale: 'Plasma',
+                    showscale: true,
+                    colorbar: {title: 'Drain V', tickfont: {size: 14}},
+                    size: 14,
+                    line: {color: '#000', width: 2}
+                }
+            };
+
+            const layout = {
+                title: {text: '<b>Parameters</b>', font: {size: 28}},
+                xaxis: {title: {text: '<b>Gate Voltage (V)</b>', font: {size: 18}}, tickfont: {size: 14}},
+                yaxis: {title: {text: '<b>Channel Length (nm)</b>', font: {size: 18}}, tickfont: {size: 14}},
+                margin: {l: 80, r: 40, b: 60, t: 60},
+                paper_bgcolor: 'rgba(255,255,255,0.9)',
+                plot_bgcolor: 'white'
+            };
+
+            Plotly.newPlot('parameterPlot', [trace], layout, {responsive: true});
+        }
+
+        function displaySolutionsTable(results) {
+            if (!results.best_parameters || !results.objectives) return;
+
+            const tbody = document.querySelector('#solutionsTable tbody');
+            tbody.innerHTML = '';
+
+            const numSolutions = Math.min(10, results.best_parameters.length);
+
+            for (let i = 0; i < numSolutions; i++) {
+                const params = results.best_parameters[i];
+                const objs = results.objectives[i];
+
+                let gv, dv, cl, ot;
+                if (typeof params === 'object' && !Array.isArray(params)) {
+                    gv = params.gate_voltage;
+                    dv = params.drain_voltage;
+                    cl = params.channel_length * 1e9;
+                    ot = params.oxide_thickness * 1e9;
+                } else {
+                    gv = params[0];
+                    dv = params[1];
+                    cl = params[2] * 1e9;
+                    ot = params[3] * 1e9;
+                }
+
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td><strong>${i + 1}</strong></td>
+                    <td>${gv.toFixed(3)}</td>
+                    <td>${dv.toFixed(3)}</td>
+                    <td>${cl.toFixed(2)}</td>
+                    <td>${ot.toFixed(2)}</td>
+                    <td>${objs[0].toFixed(2)}</td>
+                    <td>${objs[1].toExponential(2)}</td>
+                    <td>${(-objs[2]).toExponential(2)}</td>
+                `;
+            }
+        }
+
+        function displayAlgorithmInfo(results) {
+            const infoDiv = document.getElementById('algorithmInfo');
+            
+            let infoHTML = `
+                <h3><i class="fas fa-info-circle"></i> Algorithm Information</h3>
+                <div class="feature-card">
+                    <h4>${results.algorithm || 'NSGA-III Advanced'}</h4>
+                    <p><strong>Framework:</strong> ${results.framework || 'Advanced ML-Enhanced'}</p>
+            `;
+
+            if (results.algorithm_info) {
+                const info = results.algorithm_info;
+                infoHTML += `<p><strong>Type:</strong> ${info.type || 'Many-objective Evolutionary Algorithm'}</p>`;
+                if (info.features) {
+                    infoHTML += '<p><strong>Features:</strong></p><ul>';
+                    info.features.forEach(feature => infoHTML += `<li>${feature}</li>`);
+                    infoHTML += '</ul>';
+                }
+            }
+
+            if (results.ml_features) {
+                infoHTML += `
+                    <p><strong>ML Features:</strong></p>
+                    <ul>
+                        <li>Surrogate Models: ${results.ml_features.surrogate_models ? '<i class="fas fa-check" style="color: #28a745;"></i>' : '<i class="fas fa-times" style="color: #dc3545;"></i>'}</li>
+                        <li>Active Learning: ${results.ml_features.active_learning ? '<i class="fas fa-check" style="color: #28a745;"></i>' : '<i class="fas fa-times" style="color: #dc3545;"></i>'}</li>
+                        <li>Inverse Design: ${results.ml_features.inverse_design ? '<i class="fas fa-check" style="color: #28a745;"></i>' : '<i class="fas fa-times" style="color: #dc3545;"></i>'}</li>
+                        <li>Adaptive Retraining: ${results.ml_features.adaptive_retraining ? '<i class="fas fa-check" style="color: #28a745;"></i>' : '<i class="fas fa-times" style="color: #dc3545;"></i>'}</li>
+                    </ul>
+                `;
+            }
+
+            infoHTML += '</div>';
+            infoDiv.innerHTML = infoHTML;
+        }
+    </script>
+</body>
+</html>
