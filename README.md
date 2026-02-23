@@ -81,21 +81,29 @@ This project implements a sophisticated optimization framework for TFET (Tunnel 
 ### Quick Setup
 
 1. **Clone or download** this repository to your local machine
-2. **Run the installer**:
-   ```batch
-   install_dependencies.bat
-   ```
-3. **Start the application**:
-   ```batch
-   run_web_app.bat
-   ```
+2. **Install dependencies**:
+
+```
+bash
+pip install -r requirements.txt
+
+```
+
+3. **Start the web application**:
+
+```
+bash
+python tfet_optimization_agent/web_interface/app.py
+
+```
+
 4. **Open your browser** to: http://localhost:5000
 
 ## Quick Start
 
 ### Option 1: Web Interface
 
-1. Run `run_web_app.bat` or execute `python tfet_optimization_agent/web_interface/app.py`
+1. Run: `python tfet_optimization_agent/web_interface/app.py`
 2. Open browser to http://localhost:5000
 3. Choose data source (synthetic or CSV)
 4. Click "Run Optimization"
@@ -103,7 +111,9 @@ This project implements a sophisticated optimization framework for TFET (Tunnel 
 
 ### Option 2: Command Line
 
-Run `python run_advanced_tfet.py` and choose:
+Run: `python run_advanced_tfet.py`
+
+Choose:
 
 - 1: Basic NSGA-III
 - 2: Advanced Framework with ML
@@ -113,7 +123,8 @@ Run `python run_advanced_tfet.py` and choose:
 
 If the automatic installer doesn't work:
 
-```bash
+```
+bash
 pip install flask==2.3.3
 pip install numpy==1.24.3
 pip install pandas==2.0.3
@@ -172,8 +183,6 @@ TFET _ AGENT/
 │       ├── uploads/                     # CSV file storage
 │       └── app.py                       # Flask web application
 ├── requirements.txt                     # Python dependencies
-├── install_dependencies.bat             # Automatic installer
-├── run_web_app.bat                     # Application launcher
 ├── run_advanced_tfet.py                # CLI runner
 ├── augment_data.py                      # Data augmentation script
 └── README.md                           # This file
@@ -247,7 +256,7 @@ The project includes sample datasets:
    - Add Python to system PATH
 
 2. **"Module not found" errors**
-   - Run `install_dependencies.bat`
+   - Run `pip install -r requirements.txt`
    - Check internet connection for pip downloads
 
 3. **"Port already in use"**
